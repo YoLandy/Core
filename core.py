@@ -1,12 +1,15 @@
 import os
-import PIL
+from PIL import Image
 import matplotlib.pyplot as plt
 import numpy as np
 import tkinter as tk
 from tkinter import filedialog as fd  
 
 # skill selector
-from classifier.Skill_selector import skill_selector
+from Skill_selector_model import skill_selector
+
+import warnings
+warnings.filterwarnings("ignore")
 
 translator = {
     'gpt': 'GPT_model',
@@ -35,9 +38,14 @@ class Core():
         self.models = models
 
     def process_text_ask(self, text):
-        print(skill_selector.get_predict([text]))
-        model_name = translator[skill_selector.get_predict([text])[0]]
-        model = self.models[model_name] 
+        model_name = translator[skill_selector.get_predict(text)]
+        model = self.models[model_name]
+        
+        if model_name == 'ImageCaption_model':
+            photo_file_name = fd.askopenfilename()
+            img = Image.open(photo_file_name)
+            return model.predict(img)
+        
         return model.predict(text)
 
     def process_photo_ask(self, photo_path):

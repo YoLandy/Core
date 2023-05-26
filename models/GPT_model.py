@@ -1,37 +1,38 @@
 import openai
 import numpy as np
 import imageio
+from config import GPT_API_KEY
 
-class GPT_model():
-  API_KEY = '' 
+from abstract_model import OmniModel
 
+class GPT_model(OmniModel):
   def __init__(self):
-    openai.api_key = self.API_KEY
-    self.model = "gpt-3.5-turbo"
-    self.imsize = "1024x1024"
-    self.history = []
+    openai.api_key = GPT_API_KEY
+    super().__init__()
+    self.model = 'gpt-3.5-turbo'
+    self.input_type = 'text'
+    self.output_type = 'text'
+    self.discription = 'language_model'
+    self.model_label = 'gpt'
 
-  def predict(self, message):
-    self.history.append({
-        'data' : {"role": "user", "content": message},
-        'type': 'text_ask'
-    })
-    
+  def predict(self, message, history=[]):
     response = openai.ChatCompletion.create(
       model=self.model,
-      messages=self.get_messages()
+      messages=self.get_messages(history, message)
     )
     answer = response['choices'][0]['message']['content']
-    
-    self.history.append({
-        'data' : {"role": "assistant", "content": answer},
-        'type': 'text_ans'
-    })
 
     return answer
 
-  def get_messages(self):
-    return [ask['data'] for ask in self.history if ask['type'] in ['text_ask', 'text_ans']]
+  def get_messages(self, history, message):
+    messages = []
+    for hist in history:
+      if hist['answerer'] == self.model_label:
+        messages.append({'role': "user", 'content': hist['input']})
+        messages.append({'role': "assistant", 'content': hist['output']})
+    messages.append({"role": "user", "content": message})
+    return messages
+
   
 if __name__ == '__main__':
   model = GPT_model()
