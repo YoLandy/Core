@@ -6,6 +6,7 @@ from abstract_model import OmniModel
 from PIL import Image
 import requests
 from io import BytesIO
+import time
 
 class DALLE_model(OmniModel):
   API_KEY = GPT_API_KEY
@@ -14,8 +15,8 @@ class DALLE_model(OmniModel):
     super().__init__()
     
     openai.api_key = self.API_KEY
-    self.input_type = 'text'
-    self.output_type = 'photo'
+    self.input_type = ['text']
+    self.output_type = ['photo']
     
     self.discription = 'image model'
     self.model_label = 'dalle'
@@ -30,8 +31,9 @@ class DALLE_model(OmniModel):
     )
     image_url = response['data'][0]['url']
     image = self.url_to_pil(image_url)
-    
-    return image
+    filename = f'C:/Users/Reny/Documents/GitHub/Core/photos/{time.time()}.png'
+    image.save(filename)
+    return [filename]
 
   def url_to_pil(self, url):
     response = requests.get(url)

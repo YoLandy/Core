@@ -13,11 +13,13 @@ import os
 from joblib import dump, load
 
 from models.GPT_model import GPT_model
+from models.ImageCaption_model import ImageCaption_model
 
 class Skill_selector:
     def __init__(self):
-        discriptions = {'\'GPT-3\'': '',
-               '\'DALLE\'': ''}
+        discriptions = {'\'GPT-3\'': 'chat bot, also can discribe pictures',
+               '\'DALLE\'': 'draw picture by text'}
+        
         self.gpt = GPT_model()
         self.m_names = ""
         self.begin_prompt =  "Imagine that you have a choice of "
@@ -29,7 +31,7 @@ class Skill_selector:
     def get_predict(self, prompt):
         prompt = prompt.lower()
         res = self.begin_prompt + self.m_names + self.middle_prompt+"\""+ prompt+"\"" + self.end_prompt
-        return self.check_result(self.gpt.predict(res))
+        return self.check_result(self.gpt.predict(res)[0])
     
     def check_result(self,res):
         if 'dalle' in res.lower(): return 'dalle'
@@ -51,3 +53,18 @@ class Context_selector():
         
     
 context_selector = Context_selector()
+
+class Photo_convertor():
+    def __init__(self):
+        self.convertor = ImageCaption_model()
+
+    def get_text_from_history(self, history):
+        for value, value_type in history['input']:
+            if value_type == 'photo':
+                history['input_disc']  = 'the photo contains "' +self.convertor.predict(value)[0] + '"'
+        for value, value_type in history['output']:
+            if value_type == 'photo':
+                history['output_disc']  = 'the photo contains "' +self.convertor.predict(value)[0] + '"'    
+        
+        return history
+pc = Photo_convertor()
