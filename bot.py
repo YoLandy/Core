@@ -7,19 +7,18 @@ import time
 from PIL import Image
 import numpy as np
 
-from config import TG_API_TOKEN
-from config import START_TEXT
+from config import TG_API_TOKEN, START_TEXT, ABSOLUTE_PATH_PHOTO, PHOTO_WITHOUT_CAPTION_ERROR
 
 # skill selector
-from Skill_selector_model import skill_selector, context_selector, pc
+from OperatingModels import skill_selector, context_selector, pc
 
 translator = {
-    'gpt': 'GPT_model',
+    'gpt': 'GPT_model', 
     'dalle': 'DALLE_model',
     'discribe': 'ImageCaption_model'
 }
 
-# Models
+# Models import
 model_names = []
 for root, dirs, files in os.walk("models"):  
     for filename in files:
@@ -29,6 +28,7 @@ for root, dirs, files in os.walk("models"):
             exec(f'from models.{model_name} import {model_name}')
             model_names.append(model_name)
 
+# Models inits
 models = {}
 for model_name in model_names:
     models[model_name] = eval(f'{model_name}()')
@@ -42,21 +42,21 @@ dp = Dispatcher(bot)
 
 history = {}
 
+# start
 @dp.message_handler(commands=['start'])
 async def send_welcome(message: types.Message):
     user_id = message.from_user.id
     history[user_id] = []
     
-    history[user_id].append(
-        {
-            'input': message.text,
-            'answerer': 'bot',
-            'output': START_TEXT
-        }
-        )
+    history[user_id].append({
+        'input': message.text,
+        'answerer': 'bot',
+        'output': START_TEXT
+    })
     
     await message.reply(START_TEXT)
 
+# функции которые обрабатывают разные типы данных
 answer_processor = {
     'photo': lambda message, filename: bot.send_photo(chat_id=message.chat.id, photo=types.InputFile(filename)),
     'text': lambda message, text: bot.send_message(message.from_user.id, text)  
@@ -64,36 +64,40 @@ answer_processor = {
     
 @dp.message_handler(content_types=['photo', 'text'])
 async def echo(message: types.Message):
-    await bot.send_chat_action(message.chat.id, types.ChatActions.TYPING)
-    
+    user_id = message.from_user.id
     inputs = []
-    
-    if message.photo :
-        filename = f'photos/{time.time()}.jpg'
-        await message.photo[-1].download(f'C:/Users/Reny/Documents/GitHub/Core/photos/{time.time()}.jpg')
-        inputs.append((filename, 'photo'))
-
     text = ''
     
+    # если нет истории, то создаем
+    if user_id not in history:
+        history[user_id] = []
+    
+    # если есть текст в сообщении - сохраняем message.text
     if message.text:
         inputs.append((message.text, 'text'))
         text = message.text
-        
+    
+    # если есть описание к фотке - сохраняем message.caption
     if message.caption:
         inputs.append((message.caption, 'text'))
         text = message.caption
-        
+
+    # если есть фотка без описания
     if message.photo and message.caption is None:
-        return await bot.send_message(message.from_user.id, 'Отправь фотку с текстом, пж')
+        return await bot.send_message(message.from_user.id, PHOTO_WITHOUT_CAPTION_ERROR)
     
     model_name = translator[skill_selector.get_predict(text)]
     model = models[model_name]
     
-    print(text)
+    #пока реализованы только нейросети которые принимают одну фотку
+    if message.photo :
+        filename = f'{ABSOLUTE_PATH_PHOTO}/{time.time()}.jpg'
+        await message.photo[-1].download(f'{ABSOLUTE_PATH_PHOTO}/{time.time()}.jpg')
+        inputs.append((filename, 'photo'))
+        answer = model.predict(filename, history=history[message.from_user.id])
     
-    answer = model.predict(text, history=history[message.from_user.id])
-    
-    print(str(zip(answer, model.output_type)))
+    else:
+        answer = model.predict(text, history=history[message.from_user.id])
     
     # отправляем все что отправила нейросеть
     for value, value_type in zip(answer, model.output_type):
@@ -109,7 +113,6 @@ async def echo(message: types.Message):
     hist = pc.get_text_from_history(hist)
     
     # сохраняем
-    user_id = message.from_user.id
     history[user_id].append(hist)
 
 
@@ -121,5 +124,3 @@ if __name__ == '__main__':
     
     with open("logs.json", "w", encoding="utf-8") as file:
             json.dump(history, file)
-            
-            

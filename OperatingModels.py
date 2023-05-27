@@ -17,8 +17,9 @@ from models.ImageCaption_model import ImageCaption_model
 
 class Skill_selector:
     def __init__(self):
-        discriptions = {'\'GPT-3\'': 'chat bot, also can discribe pictures',
-               '\'DALLE\'': 'draw picture by text'}
+        discriptions = {'\'GPT-3\'': '',
+               '\'DALLE\'': 'draw picture by text',
+               '\'Discriber\'': 'discribe image and photo, image caption model'}
         
         self.gpt = GPT_model()
         self.m_names = ""
@@ -35,7 +36,9 @@ class Skill_selector:
     
     def check_result(self,res):
         if 'dalle' in res.lower(): return 'dalle'
-        if 'gpt' in res.lower(): return 'gpt'
+        else:
+            if 'discriber' in res.lower(): return 'discribe'
+            else: return 'gpt'
 
 skill_selector = Skill_selector()
 

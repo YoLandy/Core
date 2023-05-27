@@ -27,7 +27,7 @@ class ImageCaption_model():
         self.tags = []
         
 
-    def predict(self, path):
+    def predict(self, path, history=[]):
         image = Image.open(path)
         if image.mode != "RGB":
             image = image.convert(mode="RGB")
