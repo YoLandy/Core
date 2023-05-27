@@ -10,3 +10,4 @@ matplotlib
 diffusers
 accelerate
 safetensors
+controlnet_aux
