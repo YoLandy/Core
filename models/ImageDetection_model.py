@@ -11,6 +11,10 @@ from transformers import YolosImageProcessor, YolosForObjectDetection
 from PIL import Image, ImageDraw
 import torch
 
+
+dir_path = ['']
+
+
 class ImageDetection_model():
     def __init__(self):
         self.model = YolosForObjectDetection.from_pretrained('hustvl/yolos-tiny')
@@ -24,7 +28,7 @@ class ImageDetection_model():
 
     def predict(self, image):
         if image.mode != "RGB":
-           image = image.convert(mode="RGB")
+            image = image.convert(mode="RGB")
         inputs = self.image_processor(images=image, return_tensors='pt')
         outputs = self.model(**inputs)
 
@@ -44,6 +48,9 @@ class ImageDetection_model():
             
             draw = ImageDraw.Draw(image)
             draw.rectangle(box, width=3)
+            
+        filename = f'{dir_path}/{time.time()}.png'
+        image.save(filename)
 
-        return [image, text]
+        return [filename, text]
 

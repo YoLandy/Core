@@ -11,6 +11,10 @@ from transformers import VisionEncoderDecoderModel, ViTImageProcessor, AutoToken
 import torch
 from PIL import Image
 
+
+dir_path = ''
+
+
 class ImageCaption_model():
     def __init__(self):
         super().__init__()
@@ -38,5 +42,8 @@ class ImageCaption_model():
         output_ids = self.model.generate(pixel_values)
         preds = self.tokenizer.batch_decode(output_ids, skip_special_tokens=True)
         preds = [pred.strip() for pred in preds]
-
-        return [preds[0]]
+        
+        filename = f'{dir_path}/{time.time()}.png'
+        preds[0].save(filename)
+        
+        return [filename]

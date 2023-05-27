@@ -39,6 +39,9 @@ class ImageEditing_Model():
         image = image.convert("RGB")
 
         images = self.model(prompt, image=image, num_inference_steps=10, image_guidance_scale=1).images
-
-        images[0].save(f'{dir_path}/{time.time()}.png')
+        
+        filename = f'{dir_path}/{time.time()}.png'
+        images[0].save(filename)
+        
+        return [filename]
 

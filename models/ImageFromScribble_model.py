@@ -12,7 +12,9 @@ from diffusers import StableDiffusionControlNetPipeline, ControlNetModel, UniPCM
 import torch
 from controlnet_aux import HEDdetector
 
+
 dir_path = ''
+
 
 class ImageFromScribble_model():
 
@@ -46,6 +48,8 @@ class ImageFromScribble_model():
         image = self.hed(image, scribble=True)
 
         images = self.pipe(text, image, num_inference_steps=20).images[0]
-        #image.save(f'{dir_path}/{time.time()}.png')
-
-        return images
+        
+        filename = f'{dir_path}/{time.time()}.png'
+        images.save(filename)
+        
+        return [filename]
