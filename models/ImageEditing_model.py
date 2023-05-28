@@ -16,6 +16,7 @@ dir_path = ''
 
 
 class ImageEditing_Model():
+    
     def __init__(self):
 
         self.model =  StableDiffusionInstructPix2PixPipeline.from_pretrained(
@@ -26,11 +27,11 @@ class ImageEditing_Model():
         self.model.to("cuda")
         self.model.scheduler = EulerAncestralDiscreteScheduler.from_config(self.model.scheduler.config)
 
-        self.name = 'timbrooks/instruct-pix2pix'
+        self.name = 'instruct-pix2pix'
         self.input_type = ['image', 'text']
         self.output_type = ['image']
-        self.description = 'edit a picture by prompt, follow image editing instructions, \
-                            implement requested changes on photo'
+        self.description = 'edit a picture by prompt, follow image editing instructions, ' + \
+                            'implement requested changes on photo'
         self.tags = []
 
     def predict(self, image_path, prompt):

@@ -23,7 +23,7 @@ class ImageDetection_model():
         self.name = 'TinyYolos'
         self.in_types = ['image']  # PIL format
         self.out_types = ['image', 'text']
-        self.description = 'find objects on picture, image segmentation, detect instances.'
+        self.description = 'find objects on picture, image segmentation, detect instances'
         self.tags = []
 
     def predict(self, image):

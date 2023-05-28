@@ -35,6 +35,7 @@ class ImageFromScribble_model():
         self.pipe.to(self.device)
         #self.model.to(self.device)
 
+        self.name = ['sd-controlnet-scribble']
         self.input_type = ['image', 'text']
         self.output_type = ['image']
         self.description = 'create similar pictures, variations from following prompt, ' + \

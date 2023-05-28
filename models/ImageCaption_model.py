@@ -24,15 +24,16 @@ class ImageCaption_model():
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self.model.to(self.device)
 
-        self.input_type = ['photo']  # PIL
+        
+        self.input_type = ['image']  # PIL
         self.output_type = ['text']
-        self.description = 'describe what is happening on a picture, image captioning.'
-        self.model_label = 'image-caption' 
+        self.description = 'describe what is happening on a picture, image captioning'
+        self.name = 'image-caption' 
         self.tags = []
         
 
-    def predict(self, path):
-        image = Image.open(path)
+    def predict(self, image_path):
+        image = Image.open(image_path)
         if image.mode != "RGB":
             image = image.convert(mode="RGB")
 
