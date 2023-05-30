@@ -16,7 +16,7 @@ dir_path = ''
 cuda = "cuda:0"
 
 
-class ImageEditing_Model():
+class ImageEditing_model():
     
     def __init__(self):
 
@@ -41,7 +41,7 @@ class ImageEditing_Model():
         image = PIL.ImageOps.exif_transpose(image)
         image = image.convert("RGB")
 
-        images = self.model(prompt, image=image, num_inference_steps=10, image_guidance_scale=1).images
+        images = self.model(prompt, image=image, num_inference_steps=9, image_guidance_scale=2).images
         
         filename = f'{dir_path}/{time.time()}.png'
         images[0].save(filename)
