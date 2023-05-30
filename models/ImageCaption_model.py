@@ -10,9 +10,11 @@ Original file is located at
 from transformers import VisionEncoderDecoderModel, ViTImageProcessor, AutoTokenizer
 import torch
 from PIL import Image
+import time
 
 
 dir_path = ''
+cuda = "cuda:0"
 
 
 class ImageCaption_model():
@@ -21,7 +23,7 @@ class ImageCaption_model():
         self.model = VisionEncoderDecoderModel.from_pretrained("nlpconnect/vit-gpt2-image-captioning")
         self.feature_extractor = ViTImageProcessor.from_pretrained("nlpconnect/vit-gpt2-image-captioning")
         self.tokenizer = AutoTokenizer.from_pretrained("nlpconnect/vit-gpt2-image-captioning")
-        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        self.device = torch.device(cuda if torch.cuda.is_available() else "cpu")
         self.model.to(self.device)
 
         

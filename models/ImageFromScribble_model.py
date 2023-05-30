@@ -11,15 +11,18 @@ from PIL import Image
 from diffusers import StableDiffusionControlNetPipeline, ControlNetModel, UniPCMultistepScheduler
 import torch
 from controlnet_aux import HEDdetector
+import time
 
 
 dir_path = ''
+cuda = "cuda:0"
 
 
 class ImageFromScribble_model():
 
     def __init__(self):
-        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        self.device = torch.device(cuda if torch.cuda.is_available() else "cpu")
+        
         self.hed = HEDdetector.from_pretrained('lllyasviel/ControlNet')
         self.model = ControlNetModel.from_pretrained(
             "lllyasviel/sd-controlnet-scribble", 

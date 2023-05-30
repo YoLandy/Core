@@ -13,6 +13,7 @@ from diffusers import StableDiffusionInstructPix2PixPipeline, \
 
 
 dir_path = ''
+cuda = "cuda:0"
 
 
 class ImageEditing_Model():
@@ -24,7 +25,8 @@ class ImageEditing_Model():
             torch_dtype=torch.float16, 
             safety_checker=None
         )
-        self.model.to("cuda")
+        self.device = torch.device(cuda if torch.cuda.is_available() else "cpu")
+        self.model.to(self.device)
         self.model.scheduler = EulerAncestralDiscreteScheduler.from_config(self.model.scheduler.config)
 
         self.name = 'instruct-pix2pix'

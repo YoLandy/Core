@@ -10,13 +10,16 @@ Original file is located at
 from transformers import YolosImageProcessor, YolosForObjectDetection
 from PIL import Image, ImageDraw
 import torch
+import time
 
 
-dir_path = ['']
+dir_path = ''
+cuda = "cuda:0"
 
 
 class ImageDetection_model():
     def __init__(self):
+        
         self.model = YolosForObjectDetection.from_pretrained('hustvl/yolos-tiny')
         self.image_processor = YolosImageProcessor.from_pretrained('hustvl/yolos-tiny')
 
