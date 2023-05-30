@@ -29,7 +29,9 @@ class ImageDetection_model():
         self.description = 'find objects on picture, image segmentation, detect instances'
         self.tags = []
 
-    def predict(self, image):
+    def predict(self, image_path):
+        image = Image.open(image_path)
+        
         if image.mode != "RGB":
             image = image.convert(mode="RGB")
         inputs = self.image_processor(images=image, return_tensors='pt')
@@ -50,7 +52,7 @@ class ImageDetection_model():
                 f"{round(score.item(), 3)} at location {box}") + '\n'
             
             draw = ImageDraw.Draw(image)
-            draw.rectangle(box, width=3)
+            draw.rectangle(box, width=3, outline='yellow')
             
         filename = f'{dir_path}/{time.time()}.png'
         image.save(filename)
