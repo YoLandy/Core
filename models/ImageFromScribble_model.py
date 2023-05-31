@@ -11,15 +11,16 @@ from PIL import Image
 from diffusers import StableDiffusionControlNetPipeline, ControlNetModel, UniPCMultistepScheduler
 import torch
 from controlnet_aux import HEDdetector
+import time
+import config
 
-
-dir_path = ''
-
+dir_path = config.ABSOLUTE_PATH_PHOTO
+cuda = config.CUDA
 
 class ImageFromScribble_model():
 
     def __init__(self):
-        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        self.device = torch.device(cuda if torch.cuda.is_available() else "cpu")
         self.hed = HEDdetector.from_pretrained('lllyasviel/ControlNet')
         self.model = ControlNetModel.from_pretrained(
             "lllyasviel/sd-controlnet-scribble", 
@@ -41,9 +42,10 @@ class ImageFromScribble_model():
                             'make images that look like the original,' + \
                             'image from scratch, scribble'
         self.tags = []
+        self.model_label = 'image scribble'
 
-
-    def predict(self, image_path, text):
+    def predict(self, inputs, history=[]):
+        image_path, text = inputs
         image = Image.open(image_path)
         image = self.hed(image, scribble=True)
 

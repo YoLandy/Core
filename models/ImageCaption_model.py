@@ -10,9 +10,12 @@ Original file is located at
 from transformers import VisionEncoderDecoderModel, ViTImageProcessor, AutoTokenizer
 import torch
 from PIL import Image
+import time
 
+import config
 
-dir_path = ''
+dir_path = config.ABSOLUTE_PATH_PHOTO
+cuda = config.CUDA
 
 
 class ImageCaption_model():
@@ -21,17 +24,17 @@ class ImageCaption_model():
         self.model = VisionEncoderDecoderModel.from_pretrained("nlpconnect/vit-gpt2-image-captioning")
         self.feature_extractor = ViTImageProcessor.from_pretrained("nlpconnect/vit-gpt2-image-captioning")
         self.tokenizer = AutoTokenizer.from_pretrained("nlpconnect/vit-gpt2-image-captioning")
-        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        self.device = torch.device(cuda if torch.cuda.is_available() else "cpu")
         self.model.to(self.device)
 
-        self.input_type = ['photo']  # PIL
+        self.input_type = ['image']  # PIL
         self.output_type = ['text']
-        self.description = 'describe what is happening on a picture, image captioning.'
+        self.description = 'describe what is happening on a picture, image captioning'
         self.model_label = 'image-caption' 
-        self.tags = []
-        
+        self.tags = []  
 
-    def predict(self, path):
+    def predict(self, inputs, history=[]):
+        path = inputs[0]
         image = Image.open(path)
         if image.mode != "RGB":
             image = image.convert(mode="RGB")

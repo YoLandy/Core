@@ -2,13 +2,12 @@ import openai
 import numpy as np
 import imageio
 from config import GPT_API_KEY
-from abstract_model import OmniModel
 from PIL import Image
 import requests
 from io import BytesIO
 import time
 
-class DALLE_model(OmniModel):
+class DALLE_model():
   API_KEY = GPT_API_KEY
 
   def __init__(self):
@@ -16,14 +15,15 @@ class DALLE_model(OmniModel):
     
     openai.api_key = self.API_KEY
     self.input_type = ['text']
-    self.output_type = ['photo']
+    self.output_type = ['image']
     
-    self.discription = 'image model'
+    self.description = 'image model'
     self.model_label = 'dalle'
     
     self.imsize = '1024x1024'
     
-  def predict(self, prompt, history=[]):
+  def predict(self, inputs, history=[]):
+    prompt = inputs[0]
     response = openai.Image.create(
       prompt=prompt,
       n=1,

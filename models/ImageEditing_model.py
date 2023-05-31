@@ -11,11 +11,13 @@ import time
 from diffusers import StableDiffusionInstructPix2PixPipeline, \
                       EulerAncestralDiscreteScheduler
 
+import config
 
-dir_path = ''
+dir_path = config.ABSOLUTE_PATH_PHOTO
+cuda = config.CUDA
 
 
-class ImageEditing_Model():
+class ImageEditing_model():
     def __init__(self):
 
         self.model =  StableDiffusionInstructPix2PixPipeline.from_pretrained(
@@ -23,17 +25,20 @@ class ImageEditing_Model():
             torch_dtype=torch.float16, 
             safety_checker=None
         )
-        self.model.to("cuda")
+        self.device = torch.device(cuda if torch.cuda.is_available() else "cpu")
         self.model.scheduler = EulerAncestralDiscreteScheduler.from_config(self.model.scheduler.config)
+        self.model.to(self.device)
 
         self.name = 'timbrooks/instruct-pix2pix'
         self.input_type = ['image', 'text']
         self.output_type = ['image']
-        self.description = 'edit a picture by prompt, follow image editing instructions, \
-                            implement requested changes on photo'
+        self.description = 'edit a picture by prompt, follow image editing instructions, ' + \
+                            'implement requested changes on photo'
         self.tags = []
+        self.model_label = 'image editing'
 
-    def predict(self, image_path, prompt):
+    def predict(self, inputs, history=[]):
+        image_path, prompt = inputs
         image = PIL.Image.open(image_path)
         image = PIL.ImageOps.exif_transpose(image)
         image = image.convert("RGB")

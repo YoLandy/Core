@@ -1,37 +1,60 @@
+from aiogram import Bot, Dispatcher, executor, types
+
 import json
 import logging
-from aiogram import Bot, Dispatcher, executor, types
-import os
-import matplotlib.pyplot as plt
 import time
-from PIL import Image
-import numpy as np
 
-from config import TG_API_TOKEN
-from config import START_TEXT
+from config import TG_API_TOKEN, START_TEXT, ABSOLUTE_PATH_PHOTO, ABSOLUTE_PATH_AUDIO, ABSOLUTE_PATH_VIDEO, PHOTO_WITHOUT_CAPTION_ERROR, ABSOLUTE_PATH_LOGS
 
-# skill selector
-from Skill_selector_model import skill_selector, context_selector, pc
+# подгрузим модельки
+from ModelCollector import models
 
+# skill selector и остальные
+from OperatingModels import skill_selector
+
+model_params = {
+  'GPT_model': {
+    'description': '"text-to-text", "text generation", "conversational"',
+    'inputs': ['text'],
+    'outputs': ['image'],
+  },
+  'DALLE_model': {
+    'description': '"text-to-image", "text-to-image generation", draws and paints what is written in the text, create an image by request, picture generation',
+    'inputs': ['text'],
+    'outputs': ['image'],
+  },
+  'ImageCaption_model' : {
+    'description': ' "image-to-text", "image caption", describe what is happening on a picture, image captioning',
+    'inputs': ['image'],
+    'outputs': ['text'],
+  },
+  'ImageDetection_model': {
+    'description': ' "image segmentation", "object detection", find objects on picture, image segmentation, detect instances',
+    'inputs': ['image'],
+    'outputs': ['image', 'text']
+  },
+  'ImageEditing_model': {
+      'description': ' "image-to-image", "image editing" edit a picture by prompt, follow image editing instructions, implement requested changes on photo',
+      'inputs': ['image', 'text'],
+      'outputs': ['image'],
+  },
+  'ImageFromScribble_model': {
+      'description': '"image-to-image", "control-image-generation", "image variation", completes the image',
+      'inputs': ['image', 'text'],
+      'outputs': ['image'],
+  }
+}
+
+
+# вот тут бред надо исправить
 translator = {
-    'gpt': 'GPT_model',
+    'gpt': 'GPT_model', 
     'dalle': 'DALLE_model',
     'discribe': 'ImageCaption_model'
 }
 
-# Models
-model_names = []
-for root, dirs, files in os.walk("models"):  
-    for filename in files:
-        model_name = filename.split('.')[0]
-        ftype = filename.split('.')[-1]
-        if ftype == 'py' and model_name[0] != "_":
-            exec(f'from models.{model_name} import {model_name}')
-            model_names.append(model_name)
-
-models = {}
-for model_name in model_names:
-    models[model_name] = eval(f'{model_name}()')
+# по идее в скилл селектор надо передать дескриптионы
+# skill_selector.descriptions = model_descriptions
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -40,76 +63,86 @@ logging.basicConfig(level=logging.INFO)
 bot = Bot(token=TG_API_TOKEN)
 dp = Dispatcher(bot)
 
+# функции которые обрабатывают разные типы данных
+answer_processor = {
+    'image': lambda message, filename: bot.send_photo(chat_id=message.chat.id, photo=types.InputFile(filename)),
+    'text': lambda message, text: bot.send_message(message.from_user.id, text)  
+}
+
+#история для gpt
 history = {}
 
+
+# start
 @dp.message_handler(commands=['start'])
 async def send_welcome(message: types.Message):
     user_id = message.from_user.id
     history[user_id] = []
     
-    history[user_id].append(
-        {
-            'input': message.text,
-            'answerer': 'bot',
-            'output': START_TEXT
-        }
-        )
-    
+    history[user_id].append({
+        'input': (message.text, 'text'),
+        'answerer': 'bot',
+        'output': START_TEXT
+    })    
     await message.reply(START_TEXT)
 
-answer_processor = {
-    'photo': lambda message, filename: bot.send_photo(chat_id=message.chat.id, photo=types.InputFile(filename)),
-    'text': lambda message, text: bot.send_message(message.from_user.id, text)  
-}
-    
-@dp.message_handler(content_types=['photo', 'text'])
+@dp.message_handler()
 async def echo(message: types.Message):
-    await bot.send_chat_action(message.chat.id, types.ChatActions.TYPING)
+    user_id = message.from_user.id
+    hist_inputs = []
     
-    inputs = []
+    # если нет истории, то создаем
+    if user_id not in history:
+        history[user_id] = []
+        history[user_id].append({
+            'input': (message.text, 'text'),
+            'answerer': 'bot',
+            'output': START_TEXT
+        })
     
-    if message.photo :
-        filename = f'photos/{time.time()}.jpg'
-        await message.photo[-1].download(f'C:/Users/Reny/Documents/GitHub/Core/photos/{time.time()}.jpg')
-        inputs.append((filename, 'photo'))
-
-    text = ''
+    # если есть фотка без описания
+    if message.photo and not message.caption:
+        return await bot.send_message(message.from_user.id, PHOTO_WITHOUT_CAPTION_ERROR)
     
     if message.text:
-        inputs.append((message.text, 'text'))
         text = message.text
-        
-    if message.caption:
-        inputs.append((message.caption, 'text'))
+    else:
         text = message.caption
-        
-    if message.photo and message.caption is None:
-        return await bot.send_message(message.from_user.id, 'Отправь фотку с текстом, пж')
     
-    model_name = translator[skill_selector.get_predict(text)]
-    model = models[model_name]
+    hist_inputs.append((text, 'text'))
     
+    #пока реализованы только нейросети которые принимают одну фотку
+    if message.photo:
+        filename = f'{ABSOLUTE_PATH_PHOTO}/{time.time()}.jpg'
+        await message.photo[-1].download(f'{ABSOLUTE_PATH_PHOTO}/{time.time()}.jpg')
+        hist_inputs.append((filename, 'image'))
+    
+    model_name = skill_selector.predict(text, model_params=model_params, history=[])
+    print()
     print(text)
+    print(model_name)
+    model = models[model_name]
+    inputs = []
+    for data_type in model.input_type:
+        if data_type == 'image':
+            inputs.append(filename)
+        if data_type == 'text':
+            inputs.append(text)
     
-    answer = model.predict(text, history=history[message.from_user.id])
-    
-    print(str(zip(answer, model.output_type)))
-    
+    answer = model.predict(inputs, history=history[message.from_user.id])
+
     # отправляем все что отправила нейросеть
     for value, value_type in zip(answer, model.output_type):
         await answer_processor[value_type](message, value)
     
     # создаем историю
     hist = {
-        'input': inputs,
+        'input': hist_inputs,
         'answerer': model.model_label,
         'output': list(zip(answer, model.output_type))
     }
     
-    hist = pc.get_text_from_history(hist)
-    
     # сохраняем
-    user_id = message.from_user.id
     history[user_id].append(hist)
 
 
@@ -119,7 +152,5 @@ if __name__ == '__main__':
     except Exception as e:
         history['crash_error'] = str(e)
     
-    with open("logs.json", "w", encoding="utf-8") as file:
+    with open(f"{ABSOLUTE_PATH_LOGS}/logs{time.time()}.json", "w", encoding="utf-8") as file:
             json.dump(history, file)
-            
-            
