@@ -1,5 +1,3 @@
-GPT_API_KEY = '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'
-TG_API_TOKEN = '6257375641:AAG4eQygG0woi1FeJt2wF2MsCXichhdeoHM'
 ABSOLUTE_PATH_PHOTO = 'C:/Users/Reny/Documents/GitHub/Core/photos'
 ABSOLUTE_PATH_AUDIO = 'C:/Users/Reny/Documents/GitHub/Core/audios'
 ABSOLUTE_PATH_VIDEO = 'C:/Users/Reny/Documents/GitHub/Core/videos'
