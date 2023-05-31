@@ -1,9 +1,3 @@
-#!/usr/bin/env python
-# coding: utf-8
-
-# In[ ]:
-
-
 import PIL
 import requests
 import torch
@@ -13,7 +7,7 @@ from diffusers import StableDiffusionInstructPix2PixPipeline, \
 
 
 dir_path = ''
-cuda = "cuda:0"
+cuda = "cuda:1"
 
 
 class ImageEditing_model():
