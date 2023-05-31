@@ -21,10 +21,9 @@ class VideoGeneration_model():
         self.model.to(self.device)
 
         self.name = 'damo-vilab/text-to-video-ms-1.7b'
-        self.input_type = ['image', 'text']
-        self.output_type = ['image']
-        self.description = 'edit a picture by prompt, follow image editing instructions, ' + \
-                            'implement requested changes on photo'
+        self.input_type = ['text']
+        self.output_type = ['video']
+        self.description = 'video generation'
         self.tags = []
 
 
