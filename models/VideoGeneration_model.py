@@ -3,8 +3,10 @@ from diffusers import DiffusionPipeline, DPMSolverMultistepScheduler
 from diffusers.utils import export_to_video
 import time
 
-dir_path = ''
-cuda = "cuda:1"
+import config
+
+dir_path = config.ABSOLUTE_PATH_VIDEO
+cuda = config.CUDA
 
 class VideoGeneration_model():
     
@@ -27,12 +29,12 @@ class VideoGeneration_model():
         self.tags = []
 
 
-    def predict(self, prompt):
+    def predict(self, prompt: dict, history=[]) -> dict:
 
-        video_frames = self.model(prompt, num_inference_steps=30, num_frames=24).frames
+        video_frames = self.model(prompt['text'], num_inference_steps=30, num_frames=24).frames
         video_path = f'{dir_path}/{time.time()}.mp4'
         
         export_to_video(video_frames, output_video_path=video_path)
 
-        return [video_path]
+        return {'video': video_path}
 

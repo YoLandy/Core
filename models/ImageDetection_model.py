@@ -22,13 +22,14 @@ class ImageDetection_model():
         self.tags = []
         self.model_label = 'image detection'
 
-    def predict(self, inputs, history=[]):
-        image_path = inputs[0]
+    def predict(self, inputs: dict, history=[]) -> dict:
+        image_path = inputs['image']
         image = Image.open(image_path)
         
         if image.mode != "RGB":
             image = image.convert(mode="RGB")
         inputs = self.image_processor(images=image, return_tensors='pt')
+        inputs.to(self.device)
         outputs = self.model(**inputs)
 
         logits = outputs.logits
@@ -51,5 +52,5 @@ class ImageDetection_model():
         filename = f'{dir_path}/{time.time()}.png'
         image.save(filename)
 
-        return [filename, text]
+        return {'image': filename, 'text': text}
 

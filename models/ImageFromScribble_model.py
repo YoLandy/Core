@@ -36,8 +36,8 @@ class ImageFromScribble_model():
         self.tags = []
         self.model_label = 'image scribble'
 
-    def predict(self, inputs, history=[]):
-        image_path, text = inputs
+    def predict(self, prompt: dict, history=[]) -> dict:
+        image_path, text = prompt['image'], prompt['text']
         image = Image.open(image_path)
         image = self.hed(image, scribble=True)
 
@@ -46,4 +46,4 @@ class ImageFromScribble_model():
         filename = f'{dir_path}/{time.time()}.png'
         images.save(filename)
         
-        return [filename]
+        return {'image': filename}

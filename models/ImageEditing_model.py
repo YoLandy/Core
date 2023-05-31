@@ -32,16 +32,16 @@ class ImageEditing_model():
         self.tags = []
         self.model_label = 'image editing'
 
-    def predict(self, inputs, history=[]):
-        image_path, prompt = inputs
+    def predict(self, prompt: dict, history=[]) -> dict:
+        image_path, text = prompt['image'], prompt['text']
         image = PIL.Image.open(image_path)
         image = PIL.ImageOps.exif_transpose(image)
         image = image.convert("RGB")
 
-        images = self.model(prompt, image=image, num_inference_steps=9, image_guidance_scale=2).images
+        images = self.model(text, image=image, num_inference_steps=9, image_guidance_scale=2).images
         
         filename = f'{dir_path}/{time.time()}.png'
         images[0].save(filename)
         
-        return [filename]
+        return {'image': filename}
 

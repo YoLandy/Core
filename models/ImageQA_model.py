@@ -3,8 +3,9 @@ import torch
 import requests
 from PIL import Image
 
-dir_path = ''
-cuda = "cuda:1"
+import config
+
+cuda = config.CUDA
 
 class ImageQA_model():
 
@@ -23,12 +24,12 @@ class ImageQA_model():
         self.tags = []
         
 
-    def predict(self, image_path: str, prompt: str, k=1) -> str:
+    def predict(self, prompt: dict, history=[], k=1) -> dict:
         # url
         # Image.open(requests.get(url, stream=True).raw)
 
-        image = Image.open(image_path)
-        encoding = self.processor(image, prompt, return_tensors="pt")
+        image = Image.open(prompt['image'])
+        encoding = self.processor(image, prompt['text'], return_tensors="pt")
         encoding.to(self.device)
 
         outputs = self.model(**encoding)
@@ -50,5 +51,5 @@ class ImageQA_model():
             for i in range(len(preds)):
                 words.append(f'{preds[i]} with probability {round(probs[i]*100, 1)} %')
             
-            return ', '.join(words)
+            return {'text': ', '.join(words)}
 
