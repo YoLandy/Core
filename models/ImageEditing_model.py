@@ -1,9 +1,3 @@
-#!/usr/bin/env python
-# coding: utf-8
-
-# In[ ]:
-
-
 import PIL
 import requests
 import torch
@@ -26,10 +20,11 @@ class ImageEditing_model():
             safety_checker=None
         )
         self.device = torch.device(cuda if torch.cuda.is_available() else "cpu")
+        self.model.to(self.device)
         self.model.scheduler = EulerAncestralDiscreteScheduler.from_config(self.model.scheduler.config)
         self.model.to(self.device)
 
-        self.name = 'timbrooks/instruct-pix2pix'
+        self.name = 'instruct-pix2pix'
         self.input_type = ['image', 'text']
         self.output_type = ['image']
         self.description = 'edit a picture by prompt, follow image editing instructions, ' + \
@@ -43,7 +38,7 @@ class ImageEditing_model():
         image = PIL.ImageOps.exif_transpose(image)
         image = image.convert("RGB")
 
-        images = self.model(prompt, image=image, num_inference_steps=10, image_guidance_scale=1).images
+        images = self.model(prompt, image=image, num_inference_steps=9, image_guidance_scale=2).images
         
         filename = f'{dir_path}/{time.time()}.png'
         images[0].save(filename)
